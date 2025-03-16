@@ -5,6 +5,7 @@ pyxel.init(300, 500, title="Scroll Dungeon")
 
 class Player:
     def __init__(self):
+        self.taille = 20
         self.x = 150
         self.y = 150
         self.action = ["resting", 0] #
@@ -17,6 +18,12 @@ class Player:
     def update(self):
         if self.action[0] == "resting":
             universal_scroll(self)
+
+        if pyxel.btn(KEY_RIGHT) and self.x < 300 - self.taille:
+            self.x += 2
+
+        if pyxel.btn(KEY_LEFT) and self.x > 0:
+            self.x -= 2
         
 class Environnement:
     def __init__(self, x, y, element_type):
