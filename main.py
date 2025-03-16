@@ -13,6 +13,10 @@ class Player:
         '''
         self.surplateforme = False #will immediatly put the action at resting when True
         self.alive = True
+
+    def update(self):
+        if self.action[0] == "resting":
+            universal_scroll(self)
         
 class Environnement:
     def __init__(self, x, y, element_type):
@@ -21,3 +25,7 @@ class Environnement:
         self.element = element_type
         self.spawntime = pyxel.frame_count
         self.activated = False #For trap objects
+
+def universal_scroll(object):
+    self.y -= 1
+
