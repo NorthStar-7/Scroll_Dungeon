@@ -8,28 +8,53 @@ class Player:
         self.size = 20
         self.x = 150
         self.y = 150
-        self.action = ["resting", 0] #
-        '''resting, jumping or falling as a string  will determine the player's vertical movement
-        the number is the action timer (amount of frames player has jumped or fell) to deal with jumping or falling speed
-        '''
-        self.surplateforme = False #will immediatly put the action at resting when True
+        self.vy = 0
+        self.action = "resting" 
+        '''resting, jumping or falling as a string  will determine the player's vertical movement'''
         self.alive = True
 
     def update_position(self):
+        if self.rest() == True:
+            self.action[0] = "resting"
+        #To do; check if the player is resting on any platform by going through the list of platforms; put the action as resting if anything is true. 
+        #DONE
         if self.action[0] == "resting":
-            universal_scroll(self)
+            self.vy = -1
+            if pyxel.btn(KEY_UP): #Jumping when at rest will change the action and falling value
+                self.action = "jumping"
+                self.vy = 6
 
-        elif self.action[0] == "falling":
-            self.y -= 3
-
-        elif self.action[0] == "jumping":
-            self.y += 3
+        if self.action[0] == "jumping": #What to do with the falling value when jumping
+            if self.vy < 0:
+                self.vy -= 1
+            else:
+                self.action = "falling"
             
+        if self.action[0] == "falling":
+            if self.vy > 5:
+                self.vy -= 1
+
+        self.y += self.vy #After all actions and calculations have been made, actually change the y value.
+        
         if pyxel.btn(KEY_RIGHT) and self.x < 300 - self.size:
             self.x += 2
 
         if pyxel.btn(KEY_LEFT) and self.x > 0:
             self.x -= 2
+    
+    def rest(self):
+        for plat in plateforms:
+            if (
+                self.x + self.size > plat.x
+                and self.x < plat.x + plat.width
+                and self.y + self.size + self.vy > plat.y 
+                and self.y + self.size < plat.y + 5 + self.vy 
+            ):
+                if self.vy>0:
+                    self.y = plat.y - self.size
+                    return True
+                else:
+                    return False
         
 class Environnement:
     def __init__(self, x, y, size, element_type):
@@ -42,4 +67,3 @@ class Environnement:
 
 def universal_scroll(object):
     self.y -= 1
-
