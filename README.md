@@ -10,6 +10,9 @@ player: x and y coordinates, movement will be with arrow keys. when resting, fol
 when jumping, move up at a speed depending on how long ago you jumped (accelerate early, decelerate then stop later), 
 then fall down at a speed depending on how long ago you began falling (slow early, then accelerate to max gravity later) until you either die or land on a platform, then you go back to resting.
 
+if you lose you don't get a kiss from lebonbon
+
+
 
 Environnement class: 
 element-type: normal platform
