@@ -1,69 +1,119 @@
 import pyxel
 import random
 
-pyxel.init(300, 500, title="Scroll Dungeon")
+pyxel.init(300, 650, title="Scroll Dungeon")
 
-class Player:
+
+
+class Joueur:
     def __init__(self):
-        self.size = 20
-        self.x = 150
-        self.y = 150
+        self.taille = 16
+        self.x = 300 // 2 - self.taille // 2  
+        self.y = 650 // 2 - self.taille // 2  
         self.vy = 0
-        self.action = "resting" 
-        '''resting, jumping or falling as a string  will determine the player's vertical movement'''
-        self.alive = True
+        self.sur_platefore = False
 
-    def update_position(self):
-        if self.rest() == True:
-            self.action[0] = "resting"
-        #To do; check if the player is resting on any platform by going through the list of platforms; put the action as resting if anything is true. 
-        #DONE
-        if self.action[0] == "resting":
-            self.vy = -1
-            if pyxel.btn(KEY_UP): #Jumping when at rest will change the action and falling value
-                self.action = "jumping"
-                self.vy = 6
+    def update(self):
+        self.vy += 0.5  # "gravite"
+        self.y += self.vy
 
-        if self.action[0] == "jumping": #What to do with the falling value when jumping
-            if self.vy < 0:
-                self.vy -= 1
-            else:
-                self.action = "falling"
-            
-        if self.action[0] == "falling":
-            if self.vy > 5:
-                self.vy -= 1
+        if pyxel.btnp(pyxel.KEY_SPACE) and (self.sur_platefore or self.y >= 634):  
+            self.vy = -7
+            self.sur_platefore = False 
 
-        self.y += self.vy #After all actions and calculations have been made, actually change the y value.
+        if pyxel.btn(pyxel.KEY_RIGHT) and self.x < 284:
+            self.x += 3
+        if pyxel.btn(pyxel.KEY_LEFT) and self.x > 0:
+            self.x += -3
         
-        if pyxel.btn(KEY_RIGHT) and self.x < 300 - self.size:
-            self.x += 2
+        if self.sur_plateforme() and not self.sur_platefore:  
+            global score
+            score += 1
+        
+        self.sur_platefore = self.sur_plateforme() 
 
-        if pyxel.btn(KEY_LEFT) and self.x > 0:
-            self.x -= 2
+    def draw(self):
+        pyxel.rect(self.x, self.y, self.taille, self.taille, 8)
     
-    def rest(self):
-        for plat in plateforms:
+    def sur_plateforme(self):
+        for plat in plateformes:
             if (
-                self.x + self.size > plat.x
-                and self.x < plat.x + plat.width
-                and self.y + self.size + self.vy > plat.y 
-                and self.y + self.size < plat.y + 5 + self.vy 
+                self.x + self.taille > plat.x
+                and self.x < plat.x + plat.largeur
+                and self.y + self.taille + self.vy > plat.y 
+                and self.y + self.taille < plat.y + 5 + self.vy 
             ):
                 if self.vy>0:
-                    self.y = plat.y - self.size
-                    return True
-                else:
-                    return False
+                    self.y = plat.y - self.taille
+                return True
+        return False
         
-class Environnement:
-    def __init__(self, x, y, size, element_type):
+
+class Plateforme:
+    def __init__(self, x, y):
         self.x = x
         self.y = y
-        self.size = size
-        self.element = element_type
-        self.spawntime = pyxel.frame_count
-        self.activated = False #For trap objects
+        self.largeur = 78  
 
-def universal_scroll(object):
-    self.y -= 1
+    def update(self):
+        self.y += 2.5
+        if self.y > 650:
+            y_min = min(plat.y for plat in plateformes if plat.y < 650)  
+            self.y = y_min - random.randint(40, 80)
+            self.x = random.randint(10, 300 - self.largeur - 10)
+
+    def draw(self):
+        pyxel.rect(self.x, self.y, self.largeur, 5, 7) 
+
+joueur = Joueur()
+plateformes = [Plateforme(random.randint(150, 180), random.randint(100, 550)) for i in range(8)]
+
+# variables pour gérer l'état du jeu
+jeu_demarre = False
+game_over = False
+score = 0
+
+
+def update():
+    global jeu_demarre, game_over
+
+    for plat in plateformes:
+        plat.update()
+
+    if not jeu_demarre:
+        if pyxel.btnp(pyxel.KEY_SPACE):
+            jeu_demarre = True
+            joueur.vy = -7.5 
+    else:
+        joueur.update()
+       
+
+def draw():
+    global game_over
+    pyxel.cls(0) 
+    
+    
+    pyxel.text(5, 5, f"Score: {score}", 7)
+    
+    if not jeu_demarre:
+        pyxel.text(120, 300, "Appuyez sur Espace", 7) 
+        joueur.draw()
+        for plat in plateformes:
+            plat.draw()  
+
+    else:
+        if joueur.y > 650:
+            game_over = True
+
+        if game_over: 
+            pyxel.text(95, 300, "GAME OVER ! Cliquer sur echap", 8) 
+            pyxel.text(95, 320, f"Score final: {score}", 7)  
+            return
+        
+        else:
+            joueur.draw()
+            for plat in plateformes:
+                plat.draw()
+
+
+pyxel.run(update, draw)
