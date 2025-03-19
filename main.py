@@ -18,7 +18,7 @@ class Joueur:
         self.y += self.vy
 
         if pyxel.btnp(pyxel.KEY_SPACE) and (self.sur_platefore or self.y >= 634):  
-            self.vy = -7
+            self.vy = -10
             self.sur_platefore = False 
 
         if pyxel.btn(pyxel.KEY_RIGHT) and self.x < 284:
@@ -47,7 +47,19 @@ class Joueur:
                     self.y = plat.y - self.taille
                 return True
         return False
-        
+    
+    def contre_ennemi(self):
+        for foe in enemies:
+            if (
+                self.x + self.taille > foe.x
+                and self.x < foe.x + foe.taille
+                and self.y + self.taille + self.vy > foe.y 
+                and self.y + self.taille < foe.y + 5 + self.vy 
+            ):
+                if self.vy>0:
+                    self.y = foe.y - self.taille
+                return True
+        return False     
 
 class Plateforme:
     def __init__(self, x, y):
@@ -56,18 +68,35 @@ class Plateforme:
         self.largeur = 78  
 
     def update(self):
-        self.y += 2.5
+        self.y += 4
         if self.y > 650:
             y_min = min(plat.y for plat in plateformes if plat.y < 650)  
             self.y = y_min - random.randint(40, 80)
             self.x = random.randint(10, 300 - self.largeur - 10)
 
     def draw(self):
-        pyxel.rect(self.x, self.y, self.largeur, 5, 7) 
+        pyxel.rect(self.x, self.y, self.largeur, 5, 7)
+        
+class Enemies:
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+        self.taille = 16
+        self.vitesse_descente = 5
 
+    def update(self):
+        self.y += self.vitesse_descente
+        if self.y > 650:  
+            self.y = random.randint(-100, -50)
+            self.x = random.randint(10, 300 - self.taille) 
+
+    def draw(self):
+        pyxel.circ(self.x + self.taille // 2, self.y + self.taille // 2, self.taille // 2, 9)
+
+#variables pour initialiser les elements
 joueur = Joueur()
 plateformes = [Plateforme(random.randint(150, 180), random.randint(100, 550)) for i in range(8)]
-
+enemies = [Enemies(random.randint(10, 300),random.randint(100, 550) ) for _ in range(3)] 
 # variables pour gérer l'état du jeu
 jeu_demarre = False
 game_over = False
@@ -83,10 +112,11 @@ def update():
     if not jeu_demarre:
         if pyxel.btnp(pyxel.KEY_SPACE):
             jeu_demarre = True
-            joueur.vy = -7.5 
+            joueur.vy = -8 
     else:
         joueur.update()
-       
+        for foe in enemies:
+            foe.update()
 
 def draw():
     global game_over
@@ -102,7 +132,7 @@ def draw():
             plat.draw()  
 
     else:
-        if joueur.y > 650:
+        if joueur.y > 650 or joueur.contre_ennemi() == True:
             game_over = True
 
         if game_over: 
@@ -112,6 +142,8 @@ def draw():
         
         else:
             joueur.draw()
+            for foe in enemies:
+                foe.draw()
             for plat in plateformes:
                 plat.draw()
 
