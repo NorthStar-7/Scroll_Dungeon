@@ -6,10 +6,10 @@ pyxel.init(300, 500, title="Scroll Dungeon")
 
 class Joueur:
     def __init__(self):
-        self.x = 300 // 2 - self.taille // 2  
-        self.y = 650 // 2 - self.taille // 2
         self.sizex = 16
         self.sizey = 16
+        self.x = 300 // 2 - self.sizex // 2  
+        self.y = 650 // 2 - self.sizey // 2
         self.vy = 0
         self.sur_platefore = False
 
@@ -33,7 +33,7 @@ class Joueur:
         self.sur_platefore = self.sur_plateforme() 
 
     def draw(self):
-        pyxel.rect(self.x, self.y, self.taille, self.taille, 8)
+        pyxel.rect(self.x, self.y, self.sizex, self.sizey, 8)
     
     def sur_plateforme(self):
         for plat in plateformes:
@@ -53,7 +53,7 @@ class Joueur:
     
     def contre_ennemi(self):
         for foe in enemies:
-            if collision(self, Bplat):
+            if collision(self, foe):
                 if self.vy>0:
                     self.y = foe.y - self.sizey
                 return True
@@ -71,10 +71,10 @@ class Plateforme:
         if self.y > 650:
             y_min = min(plat.y for plat in plateformes if plat.y < 650)  
             self.y = y_min - random.randint(40, 80)
-            self.x = random.randint(10, 300 - self.largeur - 10)
+            self.x = random.randint(10, 300 - self.sizex - 10)
 
     def draw(self):
-        pyxel.rect(self.x, self.y, self.largeur, 5, 7)
+        pyxel.rect(self.x, self.y, self.sizex, sizey, 7)
         
 class breaking_platforms:
     def __init__(self,x, y):
@@ -90,18 +90,18 @@ class breaking_platforms:
         if self.y > 650:
             y_min = min(plat.y for plat in plateformes if plat.y < 650)  
             self.y = y_min - random.randint(40, 80)
-            self.x = random.randint(10, 300 - self.largeur - 10)
+            self.x = random.randint(10, 300 - self.sizex - 10)
             
         if not self.etat and joueur.sur_Bplateforme():
             self.etat = True
             self.timer = pyxel.framecount
             
-        if self.timer + 45 = pyxel.framecount:
+        if self.timer + 45 == pyxel.framecount:
             self.etat = False
             
     def draw(self):
         if not self.etat:
-            pyxel.rect(self.x, self.y, self.largeur, 5 ,10)
+            pyxel.rect(self.x, self.y, self.sizex, sizey ,10)
             
 
 class Enemies:
@@ -116,10 +116,10 @@ class Enemies:
         self.y += self.vitesse_descente
         if self.y > 650:  
             self.y = random.randint(-100, -50)
-            self.x = random.randint(10, 300 - self.taille) 
+            self.x = random.randint(10, 300 - self.sizex) 
 
     def draw(self):
-        pyxel.circ(self.x + self.taille // 2, self.y + self.taille // 2, self.taille // 2, 9)
+        pyxel.circ(self.x + self.sizex // 2, self.y + self.sizey // 2, self.sizex // 2, 9)
 
 #variables pour initialiser les elements
 joueur = Joueur()
