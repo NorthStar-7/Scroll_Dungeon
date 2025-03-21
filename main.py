@@ -14,6 +14,7 @@ class Player:
         '''
         self.surplateforme = False #will immediatly put the action at resting when True
         self.alive = True
+        self.vitesse = 3
 
     def update_position(self):
         if self.action[0] == "resting":
@@ -30,6 +31,34 @@ class Player:
 
         if pyxel.btn(KEY_LEFT) and self.x > 0:
             self.x -= 2
+
+    def contre_ennemi(self):
+        for foe in enemies:
+            if (
+                self.x + self.taille > foe.x
+                and self.x < foe.x + foe.taille
+                and self.y + self.taille > foe.y 
+                and self.y < foe.y + foe.taille
+            ):
+                return True
+        return False 
+
+    def attrape_perk(self):
+        global score
+        for perk in perks:
+            if (
+                self.x + self.taille > perk.x
+                and self.x < perk.x + perk.taille
+                and self.y + self.taille > perk.y 
+                and self.y < perk.y + perk.taille
+            ):
+                if perk.type == "jump":
+                    self.vy = -12  # Augmente le saut
+                elif perk.type == "speed":
+                    self.vitesse = 5  # Augmente la vitesse
+                elif perk.type == "score":
+                    score += 5  # Ajoute du score
+                perk.reset()
         
 class Plateforme:
     def __init__(self, x, y):
@@ -61,7 +90,7 @@ class Enemies:
             self.x = random.randint(10, 300 - self.taille) 
 
     def draw(self):
-        pyxel.circ(self.x + self.taille // 2, self.y + self.taille // 2, self.taille // 2, 9)
+        pyxel.rect(self.x, self.y, self.taille, self.taille, 10)
 
     def verifier_collision(self, joueur):
         collision_en_x = (self.x < joueur.x + joueur.size) and (self.x + self.taille > joueur.x)
