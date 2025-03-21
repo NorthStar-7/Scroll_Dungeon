@@ -1,15 +1,15 @@
 import pyxel
-import random
+import random 
 
-pyxel.init(300, 650, title="Scroll Dungeon")
-
+pyxel.init(300, 500, title="Scroll Dungeon")
 
 
 class Joueur:
     def __init__(self):
-        self.taille = 16
-        self.x = 300 // 2 - self.taille // 2  
-        self.y = 650 // 2 - self.taille // 2  
+        self.sizex = 16
+        self.sizey = 16
+        self.x = 300 // 2 - self.sizex // 2  
+        self.y = 650 // 2 - self.sizey // 2
         self.vy = 0
         self.sur_platefore = False
 
@@ -17,7 +17,7 @@ class Joueur:
         self.vy += 0.5  # "gravite"
         self.y += self.vy
 
-        if pyxel.btnp(pyxel.KEY_SPACE) and (self.sur_platefore or self.y >= 634):  
+        if pyxel.btnp(pyxel.KEY_SPACE) and (self.sur_platefore or self.y >= 500):  
             self.vy = -10
             self.sur_platefore = False 
 
@@ -26,38 +26,36 @@ class Joueur:
         if pyxel.btn(pyxel.KEY_LEFT) and self.x > 0:
             self.x += -3
         
-        if self.sur_plateforme() and not self.sur_platefore:  
+        if self.sur_plateforme() and not self.sur_platefore and self.vy > 0:  
             global score
             score += 1
         
         self.sur_platefore = self.sur_plateforme() 
 
     def draw(self):
-        pyxel.rect(self.x, self.y, self.taille, self.taille, 8)
+        pyxel.rect(self.x, self.y, self.sizex, self.sizey, 8)
     
     def sur_plateforme(self):
         for plat in plateformes:
-            if (
-                self.x + self.taille > plat.x
-                and self.x < plat.x + plat.largeur
-                and self.y + self.taille + self.vy > plat.y 
-                and self.y + self.taille < plat.y + 5 + self.vy 
-            ):
+            if collision(self, plat):
                 if self.vy>0:
-                    self.y = plat.y - self.taille
+                    self.y = plat.y - self.sizey
+                return True
+        return False
+    
+    def sur_Bplateforme(self):
+        for Bplat in Bplateformes:
+            if collision(self, Bplat):
+                if self.vy>0:
+                    self.y = Bplat.y - self.sizey
                 return True
         return False
     
     def contre_ennemi(self):
         for foe in enemies:
-            if (
-                self.x + self.taille > foe.x
-                and self.x < foe.x + foe.taille
-                and self.y + self.taille + self.vy > foe.y 
-                and self.y + self.taille < foe.y + 5 + self.vy 
-            ):
+            if collision(self, foe):
                 if self.vy>0:
-                    self.y = foe.y - self.taille
+                    self.y = foe.y - self.sizey
                 return True
         return False     
 
@@ -65,37 +63,68 @@ class Plateforme:
     def __init__(self, x, y):
         self.x = x
         self.y = y
-        self.largeur = 78  
+        self.sizex = 78
+        self.sizey = 5
 
     def update(self):
         self.y += 4
-        if self.y > 650:
-            y_min = min(plat.y for plat in plateformes if plat.y < 650)  
+        if self.y > 500:
+            y_min = min(plat.y for plat in plateformes if plat.y < 500)  
             self.y = y_min - random.randint(40, 80)
-            self.x = random.randint(10, 300 - self.largeur - 10)
+            self.x = random.randint(10, 300 - self.sizex - 10)
 
     def draw(self):
-        pyxel.rect(self.x, self.y, self.largeur, 5, 7)
+        pyxel.rect(self.x, self.y, self.sizex, self.sizey, 7)
         
-class Enemies:
-    def __init__(self, x, y):
+class breaking_platforms:
+    def __init__(self,x, y):
         self.x = x
         self.y = y
-        self.taille = 16
+        self.sizex = 78
+        self.sizey = 5
+        self.etat = False
+        self.timer = 0
+    
+    def update(self):
+        self.y += 4
+        if self.y > 500:
+            y_min = min(bplat.y for bplat in Bplateformes if bplat.y < 500)  
+            self.y = y_min - random.randint(40, 80)
+            self.x = random.randint(10, 300 - self.sizex - 10)
+            
+        if not self.etat and joueur.sur_Bplateforme() and joueur.vy > 0:
+            self.etat = True
+            self.timer = pyxel.frame_count
+            
+        if self.timer + 45 == pyxel.frame_count:
+            self.etat = False
+            
+    def draw(self):
+        if not self.etat:
+            pyxel.rect(self.x, self.y, self.sizex, self.   sizey ,10)
+            
+
+class Enemies:
+    def __init__(self, x, y):
+        self.x = x 
+        self.y = y
+        self.sizex = 16
+        self.sizey = 16
         self.vitesse_descente = 5
 
     def update(self):
         self.y += self.vitesse_descente
-        if self.y > 650:  
+        if self.y > 500:  
             self.y = random.randint(-100, -50)
-            self.x = random.randint(10, 300 - self.taille) 
+            self.x = random.randint(10, 300 - self.sizex) 
 
     def draw(self):
-        pyxel.circ(self.x + self.taille // 2, self.y + self.taille // 2, self.taille // 2, 9)
+        pyxel.circ(self.x + self.sizex // 2, self.y + self.sizey // 2, self.sizex // 2, 9)
 
 #variables pour initialiser les elements
 joueur = Joueur()
-plateformes = [Plateforme(random.randint(150, 180), random.randint(100, 550)) for i in range(8)]
+plateformes = [Plateforme(random.randint(150, 180), random.randint(100, 500)) for i in range(8)]
+Bplateformes = [breaking_platforms(random.randint(10, 300 - 78 - 10), random.randint(100, 400)) for i in range(3)]
 enemies = [Enemies(random.randint(10, 300),random.randint(100, 550) ) for _ in range(3)] 
 # variables pour gérer l'état du jeu
 jeu_demarre = False
@@ -108,13 +137,17 @@ def update():
 
     for plat in plateformes:
         plat.update()
+        
+    for Bplat in Bplateformes:
+        Bplat.update()
 
     if not jeu_demarre:
         if pyxel.btnp(pyxel.KEY_SPACE):
             jeu_demarre = True
-            joueur.vy = -8 
+            joueur.vy = -10 
     else:
         joueur.update()
+        
         for foe in enemies:
             foe.update()
 
@@ -128,11 +161,15 @@ def draw():
     if not jeu_demarre:
         pyxel.text(120, 300, "Appuyez sur Espace", 7) 
         joueur.draw()
+        
         for plat in plateformes:
-            plat.draw()  
+            plat.draw()
+            
+        for Bplat in Bplateformes:
+            Bplat.draw()  
 
     else:
-        if joueur.y > 650 or joueur.contre_ennemi() == True:
+        if joueur.y > 550 or joueur.contre_ennemi() == True:
             game_over = True
 
         if game_over: 
@@ -142,10 +179,21 @@ def draw():
         
         else:
             joueur.draw()
+            
             for foe in enemies:
                 foe.draw()
+                
             for plat in plateformes:
                 plat.draw()
+            
+            for Bplat in Bplateformes:
+                Bplat.draw()
 
+def collision(object1, object2):
+       return (
+            object1.x <= object2.x + object2.sizex and
+            object1.x + object1.sizex >= object2.x and
+            object1.y <= object2.y + object2.sizey and
+            object1.y + object1.sizey >= object2.y)
 
-pyxel.run(update, draw)
+pyxel.run(update, draw) 
