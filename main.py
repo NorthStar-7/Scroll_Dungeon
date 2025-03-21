@@ -69,10 +69,31 @@ class Enemies:
 
         return collision_en_x and collision_en_y
 
+class Perk:
+    def __init__(self, x, y, type_):
+        self.x = x
+        self.y = y
+        self.taille = 12
+        self.type = type_
+        self.vitesse_descente = 2
+        self.couleur = {"jump": 12, "speed": 11, "score": 14}[type_]
+
+    def update(self):
+        self.y += self.vitesse_descente
+        if self.y > 500:
+            self.reset()
+
+    def reset(self):
+        self.y = random.randint(-150, -50)
+        self.x = random.randint(10, 300 - self.taille)
+    
+    def draw(self):
+        pyxel.circ(self.x + self.taille // 2, self.y + self.taille // 2, self.taille // 2, self.couleur)
+
 
 # Initialisation du joueur et des plateformes
 joueur = Joueur()
 plateformes = [Plateforme(random.randint(10, 220), random.randint(100, 550)) for _ in range(8)]
 enemies = [Enemies(random.randint(10, 300)) for _ in range(3)] 
-
+perks = [Perk(random.randint(10, 300), random.randint(-200, -50), random.choice(["jump", "speed", "score"])) for _ in range(2)]
 
