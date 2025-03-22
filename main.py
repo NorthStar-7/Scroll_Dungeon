@@ -15,6 +15,7 @@ class Joueur:
     def update(self):
         global score
         
+        
         self.surPlateforme, adjust = self.sur_Plateforme()
         
         if self.vy < 8: #Limiter la gravité a 8 pixels par frame
@@ -52,6 +53,12 @@ class Joueur:
             if collision(self, platC, True) and self.vy > 0:
                 return True, platC.y
         return False, 0
+        
+    def toucherEnnemi(self):
+        for foe in enemies:
+            if collision(self, foe):
+                return True
+        return False
         
 
 class Plateforme:
@@ -98,7 +105,23 @@ class PlateformeCassante:
                 self.etat = False
             
     def draw(self):
-        pyxel.rect(self.x, self.y, self.xSize, self.ySize, 8)
+        pyxel.rect(self.x, self.y, self.xSize, self.ySize, 9)
+        
+class Enemies:
+    def __init__(self, x, y):
+        self.x = x 
+        self.y = y
+        self.xSize = 16
+        self.ySize = 16
+
+    def update(self):
+        self.y += 5
+        if self.y > 500:  
+            self.y = random.randint(-100, -50)
+            self.x = random.randint(10, 300 - self.xSize) 
+
+    def draw(self):
+        pyxel.circ(self.x + self.xSize // 2, self.y + self.ySize // 2, self.xSize // 2, 4)
  
 def collision(obj1, obj2, plat=False):
     if plat: #Verifie si le joueur est sur la surface de la plateforme
@@ -112,6 +135,7 @@ def collision(obj1, obj2, plat=False):
 joueur = Joueur()
 list_plateformes = [Plateforme(random.randint(150, 180), random.randint(100, 500)) for i in range(6)]
 list_plateformesCassantes = [PlateformeCassante(random.randint(10, 210), random.randint(100, 400)) for i in range(4)]
+enemies = [Enemies(random.randint(10, 300),random.randint(100, 550) ) for _ in range(3)] 
 jeu_demarre = False
 game_over = False
 score = 0
@@ -132,7 +156,9 @@ def update():
             joueur.vy = -10
     else:
         joueur.update()
-
+        
+        for foe in enemies:
+            foe.update()
 
 def draw():
     global game_over
@@ -152,7 +178,7 @@ def draw():
             
             
     else:
-        if joueur.y > 500:
+        if joueur.y > 500 or joueur.toucherEnnemi():
             game_over = True
             
         if game_over: 
@@ -168,6 +194,9 @@ def draw():
                 
             for platC in list_plateformesCassantes:
                 platC.draw()
+                
+            for foe in enemies:
+                foe.draw()
                 
             
 pyxel.run(update, draw) 
