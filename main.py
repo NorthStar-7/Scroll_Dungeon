@@ -15,6 +15,7 @@ class Joueur:
     def update(self):
         global score
         
+        
         self.surPlateforme, adjust = self.sur_Plateforme()
         
         if self.vy < 8: #Limiter la gravité a 8 pixels par frame
@@ -48,6 +49,9 @@ class Joueur:
         for plat in list_plateformes:
             if collision(self, plat, True) and self.vy > 0:
                 return True, plat.y
+        for platC in list_plateformesCassantes:
+            if collision(self, platC, True) and self.vy > 0:
+                return True, platC.y
         return False, 0
         
 
@@ -67,6 +71,35 @@ class Plateforme:
     
     def draw(self):
         pyxel.rect(self.x, self.y, self.xSize, self.ySize, 7)
+        
+class PlateformeCassante:
+    def __init__(self, x, y):
+        self.xSize = 80
+        self.ySize = 5
+        self.x = x
+        self.y = y
+        self.timer = 0
+        self.etat = True
+    
+    def update(self): #Faire descendre la plateforme, et la faire respawn en haut si la plateforme arrive tout en bas selon des parametres semi-aléatoires.
+        self.y += 2
+        if self.y > 500 or not self.etat:
+            y_min = min(plat.y for plat in list_plateformes if plat.y < 500)  
+            self.y = y_min - random.randint(40, 120)
+            self.x = random.randint(10, 300 - self.xSize - 10)
+            self.etat = True
+            self.timer = 0
+            
+        if self.timer == 0 and collision(joueur, self, True) and joueur.vy > 0:
+            self.timer = 1
+        
+        if self.timer > 0:
+            self.timer += 1
+            if self.timer > 30:
+                self.etat = False
+            
+    def draw(self):
+        pyxel.rect(self.x, self.y, self.xSize, self.ySize, 8)
  
 def collision(obj1, obj2, plat=False):
     if plat: #Verifie si le joueur est sur la surface de la plateforme
@@ -78,18 +111,21 @@ def collision(obj1, obj2, plat=False):
         return (obj1.x < obj2.x + obj2.xSize and obj1.x + obj1.xSize > obj2.x and obj1.y < obj2.y + obj2.ySize and obj1.y + obj1.ySize > obj2.y)
 
 joueur = Joueur()
-list_plateformes = [Plateforme(random.randint(150, 180), random.randint(100, 500)) for i in range(8)]
-
+list_plateformes = [Plateforme(random.randint(150, 180), random.randint(100, 500)) for i in range(6)]
+list_plateformesCassantes = [PlateformeCassante(random.randint(10, 210), random.randint(100, 400)) for i in range(4)]
 jeu_demarre = False
 game_over = False
 score = 0
 
 
 def update():
-    global jeu_demarre, game_over
+    global jeu_demarre, game_over, framecount
     
     for plat in list_plateformes:
         plat.update()
+        
+    for platC in list_plateformesCassantes:
+        platC.update()
     
     if not jeu_demarre:
         if pyxel.btnp(pyxel.KEY_SPACE):
@@ -112,6 +148,9 @@ def draw():
         for plat in list_plateformes:
             plat.draw()
             
+        for platC in list_plateformesCassantes:
+            platC.draw()
+            
             
     else:
         if joueur.y > 500:
@@ -127,6 +166,9 @@ def draw():
                 
             for plat in list_plateformes:
                 plat.draw()
+                
+            for platC in list_plateformesCassantes:
+                platC.draw()
                 
             
 pyxel.run(update, draw) 
