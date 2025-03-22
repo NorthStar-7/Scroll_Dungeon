@@ -15,7 +15,6 @@ class Joueur:
     def update(self):
         global score
         
-        
         self.surPlateforme, adjust = self.sur_Plateforme()
         
         if self.vy < 8: #Limiter la gravité a 8 pixels par frame
