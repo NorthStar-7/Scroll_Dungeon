@@ -13,9 +13,6 @@ class Joueur:
         self.surPlateforme = False
 
     def update(self):
-        global score
-        
-        
         self.surPlateforme, adjust = self.sur_Plateforme()
         
         if self.vy < 8: #Limiter la gravité a 8 pixels par frame
@@ -139,10 +136,11 @@ enemies = [Enemies(random.randint(10, 300),random.randint(100, 550) ) for _ in r
 jeu_demarre = False
 game_over = False
 score = 0
+score_timer = 0
 
 
 def update():
-    global jeu_demarre, game_over, framecount
+    global jeu_demarre, game_over, framecount, score, score_timer
     
     for plat in list_plateformes:
         plat.update()
@@ -159,6 +157,11 @@ def update():
         
         for foe in enemies:
             foe.update()
+            
+        score_timer += 1
+        if score_timer >= 90: #Augmenter le score chaque 3 secondes
+            score += 1
+            score_timer = 0
 
 def draw():
     global game_over
